@@ -11,6 +11,8 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -24,6 +26,7 @@ class MemberRepositoryTest {
 
     @Autowired MemberRepository memberRepository;
     @Autowired TeamRepository teamRepository;
+    @PersistenceContext EntityManager entityManager;
 
     @Test
     public void testMember() throws Exception {
@@ -215,5 +218,23 @@ class MemberRepositoryTest {
         assertThat(memberPage.getTotalPages()).isEqualTo(2);
         assertThat(memberPage.isFirst()).isTrue();
         assertThat(memberPage.hasNext()).isTrue();
+    }
+
+    @Test
+    public void bulkUpdate() throws Exception {
+        // given
+        memberRepository.save(Member.builder().username("member1").age(10).build());
+        memberRepository.save(Member.builder().username("member2").age(20).build());
+        memberRepository.save(Member.builder().username("member3").age(30).build());
+        memberRepository.save(Member.builder().username("member4").age(40).build());
+        memberRepository.save(Member.builder().username("member5").age(50).build());
+
+        // when
+        int resultCount = memberRepository.bulkAgePlus(20);  // 영향을 받은 row 수가 리턴된다.
+        entityManager.flush();
+        entityManager.clear();
+
+        // then
+        assertThat(resultCount).isEqualTo(4);
     }
 }

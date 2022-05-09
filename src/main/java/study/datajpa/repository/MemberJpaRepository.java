@@ -71,4 +71,13 @@ public class MemberJpaRepository {
                 .setParameter("age", age)
                 .getSingleResult();
     }
+
+    // 벌크성 수정 쿼리 
+    // 로직을 짜는 거보다 디비에서 그냥 업데이트 치는게 낫다
+    public int bulkAgePlus(int age) {
+        return em.createQuery("update Member m set m.age = m.age + 1 where m.age >= :age")
+                .setParameter("age", age)
+                .executeUpdate();
+
+    }
 }
