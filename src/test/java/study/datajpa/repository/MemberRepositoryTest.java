@@ -237,4 +237,35 @@ class MemberRepositoryTest {
         // then
         assertThat(resultCount).isEqualTo(4);
     }
+
+    @Test
+    public void findMemberLazy() throws Exception {
+        //given
+        //member1 -> teamA
+        //member2 -> teamB
+        Team teamA = teamRepository.save(Team.builder().name("teamA").build());
+        Team teamB = teamRepository.save(Team.builder().name("teamB").build());
+        memberRepository.save(Member.builder().username("member1").age(10).team(teamA).build());
+        memberRepository.save(Member.builder().username("member2").age(20).team(teamB).build());
+
+        entityManager.flush();
+        entityManager.clear();
+        // N+1 문제 발생
+        List<Member> members = memberRepository.findAll();
+        for (Member member : members) {
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+            System.out.println("member.getTeam().getClass() = " + member.getTeam().getClass());
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+        }
+
+        entityManager.flush();
+        entityManager.clear();
+        // fetch join : with EntityGraph
+        List<Member> fetchMembers = memberRepository.findByMembersEntityGraph();
+        for (Member member : fetchMembers) {
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+            System.out.println("member.getTeam().getClass() = " + member.getTeam().getClass());
+            System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
+        }
+    }
 }

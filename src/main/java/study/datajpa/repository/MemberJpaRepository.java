@@ -80,4 +80,9 @@ public class MemberJpaRepository {
                 .executeUpdate();
 
     }
+
+    public List<Member> findMemberFetchJoin() {
+        return em.createQuery("select m from Member m left join fetch m.team", Member.class)
+                .getResultList();
+    }
 }
