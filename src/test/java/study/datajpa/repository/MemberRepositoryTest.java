@@ -268,4 +268,52 @@ class MemberRepositoryTest {
             System.out.println("member.getTeam().getName() = " + member.getTeam().getName());
         }
     }
+
+    @Test
+    public void queryHint() throws Exception {
+        Member member1 = memberRepository.save(Member.builder().username("member1").age(10).build());
+
+        entityManager.flush();  // 실제 쿼리가 날라가고 영속성 컨텍스트에 남아있다.(1차 캐시)
+        entityManager.clear();  // 영속성 컨텍스트 전부 날라간다.
+
+        // when
+        Member findMember = memberRepository.findById(member1.getId()).get();// 실무에서는 절대 그냥 꺼내면 안된다.
+        findMember.changeName("member2");
+
+        entityManager.flush(); // 업데이트 쿼리가 나가는 것을 확인 할 수 있다. (상태||변경 감지 : 더티 체킹)
+        // 단점 - 원본이 있어야 한다. (영속성 컨텍스트 안)
+        // 데이터 2개를 관리하는 거랑 같다. == 비용이 더 많이 든다.
+        // 나는 조회만 하고 싶은데 비용이 더 많이 드는 순간 비효율적이다. 
+        // 그래서 힌트를 주도록 만들어졌다.
+        entityManager.clear();
+
+        // 내부적으로 변경이 불가능하다고 생각하고 스냅샷 등 변경감지 등을 하지 않는다
+        Member readOnlyMember = memberRepository.findReadOnlyByUsername("member2"); // 
+        readOnlyMember.changeName("member1");
+
+        entityManager.flush();
+    }
+
+    @Test
+    public void lock() throws Exception {
+        // given
+        Member member1 = memberRepository.save(Member.builder().username("member1").age(10).build());
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // when
+        List<Member> result = memberRepository.findLockByUsername("member1");
+
+        // then
+    }
+
+    @Test
+    public void callCustom() throws Exception {
+        // given
+        List<Member> memberCustom = memberRepository.findMemberCustom();
+        // when
+
+        // then
+    }
 }
